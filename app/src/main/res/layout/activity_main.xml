@@ -38,5 +38,71 @@
         android:paddingTop="20dp"
         android:text="Datos recibidos" />
 
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="30dp" />
+
+    <TextView
+        android:layout_margin="15dp"
+        android:layout_gravity="center"
+        android:textSize="20sp"
+        android:text="LED"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+
+    <LinearLayout
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnPrender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Prender" />
+
+        <Button
+            android:layout_marginLeft="30dp"
+            android:id="@+id/btnApagar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apagar" />
+
+    </LinearLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="20dp" />
+    <TextView
+        android:layout_margin="15dp"
+        android:layout_gravity="center"
+        android:textSize="20sp"
+        android:text="Sensor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Temperatura" />
+
+        <Button
+            android:id="@+id/btnHum"
+            android:layout_marginLeft="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Humedad" />
+
+    </LinearLayout>
+
 
 </LinearLayout>
