@@ -33,22 +33,17 @@ public class MainActivity extends AppCompatActivity {
     private static final int BLUETOOTH_CONNECT_REQUEST_CODE = 1001;
     private final int MESSAGE_READ = 0;
 
-    // Vistas de la interfaz
     ListView listViewDevices;
     EditText editTextSend;
     Button buttonSend, btnPrender, btnApagar, btnTemp, btnHum;
     TextView textViewReceived;
 
-    // Objetos Bluetooth
+
     BluetoothAdapter bluetoothAdapter;
     BluetoothSocket bluetoothSocket;
     OutputStream outputStream;
     InputStream inputStream;
-
-    // UUID estándar para Serial Port Profile (SPP)
     UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
-    // Handler para actualizar la UI desde el hilo de lectura
     private Handler mHandler;
 
     @Override
@@ -62,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // 1. Inicializar Vistas
         listViewDevices = findViewById(R.id.listViewDevices);
         editTextSend = findViewById(R.id.editTextSend);
         buttonSend = findViewById(R.id.buttonSend);
@@ -74,25 +68,20 @@ public class MainActivity extends AppCompatActivity {
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        // 2. Inicializar Handler para el hilo de lectura
         mHandler = new Handler(msg -> {
             if (msg.what == MESSAGE_READ) {
                 String readMessage = (String) msg.obj;
 
                 if (readMessage != null && !readMessage.isEmpty()) {
-                    readMessage = readMessage.trim(); // Limpia espacios extra
+                    readMessage = readMessage.trim();
 
-                    // Lógica de PARSEO (T25.5, H60.0)
                     if (readMessage.startsWith("T")) {
-                        // Mensaje de Temperatura: T25.5
                         String temp = readMessage.substring(1);
                         textViewReceived.setText("Temperatura: " + temp + " °C");
                     } else if (readMessage.startsWith("H")) {
-                        // Mensaje de Humedad: H60.0
                         String hum = readMessage.substring(1);
                         textViewReceived.setText("Humedad: " + hum + " %");
                     } else {
-                        // Otros mensajes (e.g., confirmación LED)
                         textViewReceived.setText("Mensaje Recibido: " + readMessage);
                     }
                 }
@@ -100,40 +89,29 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        // 3. Solicitud de Permisos y Carga de Dispositivos
 
-        // Permiso ACCESS_FINE_LOCATION (necesario en Android 6-11)
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
 
-        // Permiso BLUETOOTH_CONNECT (necesario en Android 12+)
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.BLUETOOTH_CONNECT},
                     BLUETOOTH_CONNECT_REQUEST_CODE);
         } else {
-            // Si el permiso ya está concedido, cargamos la lista inmediatamente
             loadPairedDevicesList();
         }
 
-        // 4. Configurar Click Listeners
 
-        // Envío Genérico
         buttonSend.setOnClickListener(v -> sendData(editTextSend.getText().toString()));
 
-        // Control LED
         btnPrender.setOnClickListener(v -> sendData("LED_ON"));
         btnApagar.setOnClickListener(v -> sendData("LED_OFF"));
 
-        // Solicitud de Sensor
+
         btnTemp.setOnClickListener(v -> sendData("GET_TEMP"));
         btnHum.setOnClickListener(v -> sendData("GET_HUM"));
     }
-
-    // =========================================================================
-    // Métodos de Control Bluetooth y Permisos
-    // =========================================================================
 
     private void loadPairedDevicesList() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
@@ -154,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
 
         listViewDevices.setAdapter(adapter);
 
-        // Configurar el click listener para iniciar la conexión
+
         listViewDevices.setOnItemClickListener((parent, view, position, id) -> {
             BluetoothDevice device = devicesArray[position];
             connectToDevice(device);
@@ -189,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Ejecutar la conexión en un hilo secundario para evitar bloquear la UI
+
         new Thread(() -> {
             try {
                 if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
@@ -214,15 +192,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    // =========================================================================
-    // Métodos de Comunicación
-    // =========================================================================
-
-    /**
-     * Envía una cadena de datos terminada con un salto de línea (\n) al Arduino.
-     */
     private void sendData(String message) {
-        // El Arduino espera un salto de línea (\n) para usar readStringUntil
         String messageWithTerminator = message + "\n";
 
         try {
@@ -237,20 +207,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Hilo de lectura de datos que maneja el delimitador de nueva línea (\n).
-     */
+
     private void startListeningForData() {
         Thread thread = new Thread(() -> {
-            // Caracter de nueva línea que el Arduino usa para terminar el envío (println)
             byte delimiter = '\n';
-
             while (true) {
                 try {
-                    // Esperar hasta que haya datos
                     if (inputStream.available() > 0) {
-
-                        // Leer carácter por carácter hasta encontrar el delimitador
                         String data = "";
                         int ch;
 
@@ -259,16 +222,12 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         if (ch == delimiter) {
-                            // Si encontramos el delimitador, enviamos el mensaje al Handler
                             mHandler.obtainMessage(MESSAGE_READ, data).sendToTarget();
                         }
                     }
-
-                    // Pequeña pausa para no saturar el CPU
                     Thread.sleep(50);
 
                 } catch (IOException e) {
-                    // Se perdió la conexión
                     runOnUiThread(() -> Toast.makeText(MainActivity.this, "Conexión Bluetooth perdida.", Toast.LENGTH_SHORT).show());
                     break;
                 } catch (InterruptedException e) {
